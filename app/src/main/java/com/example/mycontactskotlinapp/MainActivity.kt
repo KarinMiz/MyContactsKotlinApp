@@ -32,6 +32,7 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,7 @@ import androidx.navigation.navArgument
 import com.example.mycontactskotlinapp.ui.theme.MyApplicationTheme
 import com.example.mycontactskotlinapp.ui.theme.lightGreen
 import coil.compose.rememberImagePainter
+import com.example.mycontactskotlinapp.ui.theme.LighterGrey
 import java.util.*
 
 var contactsInfoList = ArrayList<ContactObject>()
@@ -152,21 +154,6 @@ fun MainScreen(
     }
 }
 
-@Composable
-fun SearchView(
-    modifier: Modifier = Modifier,
-    state: MutableState<TextFieldValue>,
-    placeHolder: String
-) {
-
-    TextField(
-        value = state.value,
-        onValueChange = { value ->
-            state.value = value
-        })
-
-}
-
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun ContactInfoScreen(contactId: String?, navController: NavHostController?) {
@@ -183,40 +170,48 @@ fun ContactInfoScreen(contactId: String?, navController: NavHostController?) {
         }
     }) {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(LighterGrey),
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
                 val name = contactInfo.firstName[0] + "" + contactInfo.lastName[0]
-                ContactPicture(contactInfo.photoUri, 150.dp, name)
+                ContactPicture(contactInfo.photoUri, 150.dp, name, contactInfo.backgroundColor)
                 ContactInfo(fullName)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(20.dp),
+                        .padding(top = 20.dp, start = 30.dp)
+                        .background(Color.White),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.SpaceAround
                 ) {
                     Text(
                         text = "Phone Number:",
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.h5,
+                        textDecoration = TextDecoration.Underline
                     )
                     for (phone in contactInfo.phoneList)
-                        Text("${phone.getTypeName()} : ${phone.number}")
+                        Text(text="${phone.getTypeName()} : ${phone.number}",style = MaterialTheme.typography.h6)
                     Text(
                         text = "Email:",
-                        style = MaterialTheme.typography.h5
+                        style = MaterialTheme.typography.h5,
+                        textDecoration = TextDecoration.Underline
                     )
 
                     for (email in contactInfo.emailsList)
-                        Text("${email.getTypeName()} : ${email.address}")
+                        Text(text = "${email.getTypeName()} : ${email.address}",style = MaterialTheme.typography.h6)
 
                 }
-
             }
+
+
         }
     }
 }
@@ -254,7 +249,7 @@ fun ContactCard(contactInfo: ContactObject, clickAction: () -> Unit) {
             horizontalArrangement = Arrangement.Start
         ) {
             val name = contactInfo.firstName[0] + "" + contactInfo.lastName[0]
-            ContactPicture(contactInfo.photoUri, 72.dp, name)
+            ContactPicture(contactInfo.photoUri, 72.dp, name, contactInfo.backgroundColor)
             ContactInfo(contactInfo.firstName + " " + contactInfo.lastName)
 
         }
@@ -262,7 +257,7 @@ fun ContactCard(contactInfo: ContactObject, clickAction: () -> Unit) {
 }
 
 @Composable
-fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String) {
+fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String, color: Color) {
     Card(
         shape = CircleShape,
         border = BorderStroke(
@@ -285,8 +280,8 @@ fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String) {
                     .background(Color.White)
             )
         } else {
-            val rnd = Random()
-            val color = Color(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
+//            val rnd = Random()
+//            val color = Color(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
             Text(
                 text = name,
                 style = MaterialTheme.typography.h5,

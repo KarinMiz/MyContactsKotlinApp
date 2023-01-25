@@ -7,6 +7,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.provider.ContactsContract
 import android.util.Log
+import androidx.compose.ui.graphics.Color
+import java.util.*
+import kotlin.collections.ArrayList
 
 data class ContactObject(
     var id: String,
@@ -14,7 +17,8 @@ data class ContactObject(
     val lastName: String,
     val photoUri: Bitmap?,
     val phoneList: MutableList<PhoneNumber>,
-    val emailsList: MutableList<Email>
+    val emailsList: MutableList<Email>,
+    val backgroundColor: Color
 )
 
 data class PhoneNumber(val number: String, val type: Int) {
@@ -27,6 +31,8 @@ data class PhoneNumber(val number: String, val type: Int) {
             ContactsContract.CommonDataKinds.Phone.TYPE_FAX_HOME -> "Fax (Home)"
             ContactsContract.CommonDataKinds.Phone.TYPE_PAGER -> "Pager"
             ContactsContract.CommonDataKinds.Phone.TYPE_OTHER -> "Other"
+            ContactsContract.CommonDataKinds.Phone.TYPE_CAR -> "Car"
+            ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> "Custom"
             else -> "Unknown"
         }
     }
@@ -37,6 +43,8 @@ data class Email(val address: String, val type: Int) {
             ContactsContract.CommonDataKinds.Email.TYPE_HOME -> "Home"
             ContactsContract.CommonDataKinds.Email.TYPE_WORK -> "Work"
             ContactsContract.CommonDataKinds.Email.TYPE_OTHER -> "Other"
+            ContactsContract.CommonDataKinds.Email.TYPE_MOBILE -> "Mobile"
+            ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM -> "Custom"
             else -> "Unknown"
         }
     }
@@ -106,7 +114,9 @@ class ContactRepository(context: Context) {
                 }
                 emailCursor?.close()
                 val fullName = name.split("\\p{Space}".toRegex()).toTypedArray()
-                val contact = ContactObject(id, fullName[0], fullName[1], contactImage, phoneNumbers, emails)
+                val rnd = Random()
+                val background = Color(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
+                val contact = ContactObject(id, fullName[0], fullName[1], contactImage, phoneNumbers, emails,background)
 
                 contacts.add(contact)
             }
