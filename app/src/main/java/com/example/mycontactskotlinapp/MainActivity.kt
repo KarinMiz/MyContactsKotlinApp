@@ -26,7 +26,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -41,6 +43,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.mycontactskotlinapp.ui.theme.MyApplicationTheme
 import com.example.mycontactskotlinapp.ui.theme.lightGreen
+import coil.compose.rememberImagePainter
 import java.util.*
 
 var contactsInfoList = ArrayList<ContactObject>()
@@ -271,22 +274,11 @@ fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String) {
             .size(imageSize),
         elevation = 4.dp
     ) {
-//        Image(painter = rememberCoilPainter(request = drawableId),
-//            modifier = Modifier.size(72.dp),
-//            contentDescription ="" )
-        if (imageBitmap != null) {
-//            GlideImage(
-//                data =imageBitmap,
-//                modifier = Modifier
-//                    .size(72.dp)
-//                    .background(Color.White))
-//
-//            val bitmapPainter = BitmapPainter(imageBitmap)
 
-//            val imageB = createImage(imageBitmap)
-//            val bitmapPainter = BitmapPainter(imageB)
+        if (imageBitmap != null) {
+
             Image(
-                painterResource(id = R.drawable.mrs_puff),
+                rememberImagePainter(data = imageBitmap),
                 contentDescription = "drawableId",
                 modifier = Modifier
                     .size(72.dp)
