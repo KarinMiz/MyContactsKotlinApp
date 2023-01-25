@@ -20,9 +20,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -108,7 +106,8 @@ fun ContactsApplication(contactsInfo: List<ContactObject>) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "contacts_list") {
         composable("contacts_list") {
-            MainScreen(contactsInfo, navController)
+            val textState = remember { mutableStateOf(TextFieldValue("")) }
+            MainScreen(contactsInfo, navController,textState)
         }
         composable(
             route = "contact_info/{contactId}",
@@ -128,24 +127,35 @@ fun ContactsApplication(contactsInfo: List<ContactObject>) {
 @Composable
 fun MainScreen(
     contactsInfo: List<ContactObject>,
-    navController: NavHostController?
+    navController: NavHostController?,
+    state: MutableState<TextFieldValue>
 ) {
-    var filter = { "" }
+    var filteredContacts: ArrayList<ContactObject>
     Scaffold(topBar = {
-        AppBar(
-            title = "Contacts List",
-            icon = Icons.Default.Search
-        ) {
-            // Filter
-        }
+        SearchView(state = state)
     }) {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(top = 15.dp),
         ) {
             LazyColumn {
-                items(contactsInfo) { contactInfo ->
-                    ContactCard(contactInfo = contactInfo) {
-                        navController?.navigate("contact_info/${contactInfo.id}")
+                val searchText = state.value.text
+                if(searchText.isEmpty()){
+                filteredContacts = contactsInfo as ArrayList<ContactObject>
+                }
+                else{
+                    val resultList = ArrayList<ContactObject>()
+                    for(contact in contactsInfo){
+                        if(contact.firstName.lowercase
+                                (Locale.getDefault()).contains(searchText.lowercase(Locale.getDefault()))
+                        ){
+                            resultList.add(contact)
+                        }
+                    }
+                    filteredContacts = resultList
+                }
+                items(filteredContacts) { filteredContact ->
+                    ContactCard(contactInfo = filteredContact) {
+                        navController?.navigate("contact_info/${filteredContact.id}")
                     }
                 }
             }
@@ -320,7 +330,8 @@ fun ContactInfo(contactName: String) {
 @Composable
 fun DefaultPreview() {
     MyApplicationTheme {
-        MainScreen(contactsInfo = contactsInfoList, null)
+        val textState = remember { mutableStateOf(TextFieldValue("")) }
+        MainScreen(contactsInfo = contactsInfoList, null,textState)
     }
 }
 
