@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,7 +31,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import coil.compose.rememberAsyncImagePainter
 import com.example.mycontactskotlinapp.ui.theme.MyApplicationTheme
-import com.example.mycontactskotlinapp.ui.theme.lightGreen
 import java.util.*
 
 var contactsInfoList = ArrayList<ContactObject>()
@@ -167,7 +167,7 @@ fun ContactCard(contactInfo: ContactObject, clickAction: () -> Unit) {
         ) {
             val name = contactInfo.firstName[0] + "" + contactInfo.lastName[0]
             ContactPicture(contactInfo.photoUri, 72.dp, name, contactInfo.backgroundColor)
-            ContactInfo(contactInfo.firstName + " " + contactInfo.lastName)
+            ContactInfo(contactInfo.firstName + " " + contactInfo.lastName, MaterialTheme.typography.h5)
 
         }
     }
@@ -178,11 +178,11 @@ fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String, color: Col
     Card(
         shape = CircleShape,
         border = BorderStroke(
-            width = 2.dp,
-            color = MaterialTheme.colors.lightGreen
+            width = 3.dp,
+            color = Color.Magenta
         ),
         modifier = Modifier
-            .padding(16.dp)
+            .padding(14.dp)
             .size(imageSize),
         elevation = 4.dp
     ) {
@@ -213,7 +213,7 @@ fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String, color: Col
 }
 
 @Composable
-fun ContactInfo(contactName: String) {
+fun ContactInfo(contactName: String,style: TextStyle) {
     Column(
         modifier = Modifier
             .padding(8.dp)
@@ -221,7 +221,7 @@ fun ContactInfo(contactName: String) {
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
             Text(
                 text = contactName,
-                style = MaterialTheme.typography.h5
+                style = style
             )
         }
 

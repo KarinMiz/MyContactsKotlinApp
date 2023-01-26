@@ -38,36 +38,37 @@ fun ContactInfoScreen(contactId: String?, navController: NavHostController?) {
                 .background(LighterGrey),
         ) {
             Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Top,
+            ) {
+                IconButton(onClick =
+                { navController?.navigate("contact_edit_info/${contactId}") }) {
+                    Image(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "EDIT",
+                        modifier = Modifier
+                            .size(35.dp)
+                            .padding(end = 0.dp),
+                    )
+                }
+            }
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(top = 15.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
 
                 ) {
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Top,
-                ) {
-                    IconButton(onClick =
-                    { navController?.navigate("contact_edit_info/${contactId}") }) {
-                        Image(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "EDIT",
-                            modifier = Modifier
-                                .size(35.dp)
-                                .padding(end = 0.dp),
-                        )
-                    }
-                }
+
                 val name = contactInfo.firstName[0] + "" + contactInfo.lastName[0]
-                ContactPicture(contactInfo.photoUri, 150.dp, name, contactInfo.backgroundColor)
-                ContactInfo(fullName)
+                ContactPicture(contactInfo.photoUri, 170.dp, name, contactInfo.backgroundColor)
+                ContactInfo(fullName,MaterialTheme.typography.h4)
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 20.dp, start = 30.dp)
+                        .padding(top = 8.dp, start = 8.dp)
                         .background(Color.White),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Top

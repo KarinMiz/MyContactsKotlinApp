@@ -19,6 +19,7 @@ data class ContactObject(
     val emailsList: MutableList<Email>,
     val backgroundColor: Color
 )
+
 data class PhoneNumber(var number: String, var type: Int) {
     fun getTypeName(): String {
         return when (type) {
@@ -35,6 +36,7 @@ data class PhoneNumber(var number: String, var type: Int) {
         }
     }
 }
+
 data class Email(val address: String, val type: Int) {
     fun getTypeName(): String {
         return when (type) {
@@ -46,8 +48,33 @@ data class Email(val address: String, val type: Int) {
             else -> "Unknown"
         }
     }
-}
 
+
+}
+fun getPhoneTypeNumber(number: String): Int {
+    return when (number) {
+        "Home" -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
+        "Mobile" -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+        "Work" -> ContactsContract.CommonDataKinds.Phone.TYPE_WORK
+        "Fax (Work)" -> ContactsContract.CommonDataKinds.Phone.TYPE_FAX_WORK
+        "Fax (Home)" -> ContactsContract.CommonDataKinds.Phone.TYPE_FAX_HOME
+        "Pager" -> ContactsContract.CommonDataKinds.Phone.TYPE_PAGER
+        "Other" -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
+        "Car" -> ContactsContract.CommonDataKinds.Phone.TYPE_CAR
+        "Custom" -> ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM
+        else -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
+    }
+}
+fun getEmailTypeNumber(address: String): Int {
+    return when (address) {
+        "Home" -> ContactsContract.CommonDataKinds.Email.TYPE_HOME
+        "Work" -> ContactsContract.CommonDataKinds.Email.TYPE_WORK
+        "Other" -> ContactsContract.CommonDataKinds.Email.TYPE_OTHER
+        "Mobile" -> ContactsContract.CommonDataKinds.Email.TYPE_MOBILE
+        "Custom" -> ContactsContract.CommonDataKinds.Email.TYPE_CUSTOM
+        else -> ContactsContract.CommonDataKinds.Email.TYPE_OTHER
+    }
+}
 
 class ContactRepository(private val context: Context) {
 
@@ -69,16 +96,18 @@ class ContactRepository(private val context: Context) {
                     cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
 
                 // Photo
-                val contactImage : Bitmap?
-                val hasImage = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_ID)) > 0
-                if(hasImage){
+                val contactImage: Bitmap?
+                val hasImage =
+                    cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_ID)) > 0
+                if (hasImage) {
                     //retrieve contact's image
                     val uri: String =
                         cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))
-                    val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(uri))
+                    val inputStream =
+                        context.contentResolver.openInputStream(android.net.Uri.parse(uri))
                     contactImage = BitmapFactory.decodeStream(inputStream)
                     inputStream?.close()
-                }else{
+                } else {
                     contactImage = null
                 }
 
@@ -107,18 +136,29 @@ class ContactRepository(private val context: Context) {
                     null,
                     ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
                     arrayOf(id),
-                    null)
+                    null
+                )
                 val emails = mutableListOf<Email>()
                 while (emailCursor?.moveToNext() == true) {
-                    val email = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS))
-                    val emailType = emailCursor.getInt(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE))
-                    emails.add(Email(email,emailType))
+                    val email =
+                        emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS))
+                    val emailType =
+                        emailCursor.getInt(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE))
+                    emails.add(Email(email, emailType))
                 }
                 emailCursor?.close()
                 val fullName = name.split("\\s".toRegex()).toTypedArray()
                 val rnd = Random()
                 val background = Color(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
-                val contact = ContactObject(id, fullName[0], fullName[1], contactImage, phoneNumbers, emails,background)
+                val contact = ContactObject(
+                    id,
+                    fullName[0],
+                    fullName[1],
+                    contactImage,
+                    phoneNumbers,
+                    emails,
+                    background
+                )
 
                 contacts.add(contact)
             }
@@ -126,7 +166,6 @@ class ContactRepository(private val context: Context) {
         cursor?.close()
         return contacts
     }
-
 
 
     companion object {
