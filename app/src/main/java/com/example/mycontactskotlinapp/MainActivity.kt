@@ -1,36 +1,24 @@
 package com.example.mycontactskotlinapp
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.imageResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -40,10 +28,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil.compose.rememberAsyncImagePainter
 import com.example.mycontactskotlinapp.ui.theme.MyApplicationTheme
 import com.example.mycontactskotlinapp.ui.theme.lightGreen
-import coil.compose.rememberImagePainter
-import com.example.mycontactskotlinapp.ui.theme.LighterGrey
 import java.util.*
 
 var contactsInfoList = ArrayList<ContactObject>()
@@ -58,46 +45,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             viewModel.contactViewModel(this)
             viewModel.checkPermission(this)
-
-            if (viewModel._contacts != null) {
-                for (contact in viewModel._contacts!!) {
-                    contactsInfoList.add(contact)
-                }
+            val myLiveData = viewModel.getContacts()
+            if (myLiveData != null) {
+                contactsInfoList = myLiveData.observeAsState().value!!
             }
-
             MyApplicationTheme {
                 ContactsApplication(contactsInfoList)
             }
         }
     }
-
-
-    @Deprecated("Deprecated in Java")
-    @SuppressLint("MissingSuperCall")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            MY_PERMISSIONS_REQUEST_READ_CONTACTS -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission is granted. Continue the action or workflow
-                    // in this case if you want to access contacts
-                    // Access contacts here
-
-                } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system settings in an effort
-                    // to convince the user to change their decision.
-                    Log.d(ContentValues.TAG, "NO PERMISSION")
-                }
-                return
-            }
-        }
-    }
-
 
 }
 
@@ -107,7 +63,7 @@ fun ContactsApplication(contactsInfo: List<ContactObject>) {
     NavHost(navController = navController, startDestination = "contacts_list") {
         composable("contacts_list") {
             val textState = remember { mutableStateOf(TextFieldValue("")) }
-            MainScreen(contactsInfo, navController,textState)
+            MainScreen(contactsInfo, navController, textState)
         }
         composable(
             route = "contact_info/{contactId}",
@@ -116,6 +72,17 @@ fun ContactsApplication(contactsInfo: List<ContactObject>) {
             })
         ) { navBackStackEntry ->
             ContactInfoScreen(
+                navBackStackEntry.arguments!!.getString("contactId")!!,
+                navController
+            )
+        }
+        composable(
+            route = "contact_edit_info/{contactId}",
+            arguments = listOf(navArgument("contactId") {
+                type = NavType.StringType
+            })
+        ) { navBackStackEntry ->
+            ContactEditInfoScreen(
                 navBackStackEntry.arguments!!.getString("contactId")!!,
                 navController
             )
@@ -135,19 +102,21 @@ fun MainScreen(
         SearchView(state = state)
     }) {
         Surface(
-            modifier = Modifier.fillMaxSize().padding(top = 15.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 15.dp),
         ) {
             LazyColumn {
                 val searchText = state.value.text
-                if(searchText.isEmpty()){
-                filteredContacts = contactsInfo as ArrayList<ContactObject>
-                }
-                else{
+                if (searchText.isEmpty()) {
+                    filteredContacts = contactsInfo as ArrayList<ContactObject>
+                } else {
                     val resultList = ArrayList<ContactObject>()
-                    for(contact in contactsInfo){
-                        if(contact.firstName.lowercase
-                                (Locale.getDefault()).contains(searchText.lowercase(Locale.getDefault()))
-                        ){
+                    for (contact in contactsInfo) {
+                        if (contact.firstName.lowercase
+                                (Locale.getDefault())
+                                .contains(searchText.lowercase(Locale.getDefault()))
+                        ) {
                             resultList.add(contact)
                         }
                     }
@@ -159,68 +128,6 @@ fun MainScreen(
                     }
                 }
             }
-
-        }
-    }
-}
-
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
-@Composable
-fun ContactInfoScreen(contactId: String?, navController: NavHostController?) {
-    val contactInfo = contactsInfoList.first { contact -> contactId == contact.id }
-    val fullName = "${contactInfo.firstName} ${contactInfo.lastName}"
-    Scaffold(topBar =
-    {
-        AppBar(
-            title = "$fullName Info",
-            icon = Icons.Default.ArrowBack
-        ) {
-            // Navigate Back
-            navController?.navigateUp()
-        }
-    }) {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(LighterGrey),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                val name = contactInfo.firstName[0] + "" + contactInfo.lastName[0]
-                ContactPicture(contactInfo.photoUri, 150.dp, name, contactInfo.backgroundColor)
-                ContactInfo(fullName)
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 20.dp, start = 30.dp)
-                        .background(Color.White),
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.SpaceAround
-                ) {
-                    Text(
-                        text = "Phone Number:",
-                        style = MaterialTheme.typography.h5,
-                        textDecoration = TextDecoration.Underline
-                    )
-                    for (phone in contactInfo.phoneList)
-                        Text(text="${phone.getTypeName()} : ${phone.number}",style = MaterialTheme.typography.h6)
-                    Text(
-                        text = "Email:",
-                        style = MaterialTheme.typography.h5,
-                        textDecoration = TextDecoration.Underline
-                    )
-
-                    for (email in contactInfo.emailsList)
-                        Text(text = "${email.getTypeName()} : ${email.address}",style = MaterialTheme.typography.h6)
-
-                }
-            }
-
 
         }
     }
@@ -283,15 +190,13 @@ fun ContactPicture(imageBitmap: Bitmap?, imageSize: Dp, name: String, color: Col
         if (imageBitmap != null) {
 
             Image(
-                rememberImagePainter(data = imageBitmap),
+                rememberAsyncImagePainter(model = imageBitmap),
                 contentDescription = "drawableId",
                 modifier = Modifier
                     .size(72.dp)
                     .background(Color.White)
             )
         } else {
-//            val rnd = Random()
-//            val color = Color(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
             Text(
                 text = name,
                 style = MaterialTheme.typography.h5,
@@ -318,7 +223,6 @@ fun ContactInfo(contactName: String) {
                 text = contactName,
                 style = MaterialTheme.typography.h5
             )
-            // Phones,Emails
         }
 
     }
@@ -331,7 +235,7 @@ fun ContactInfo(contactName: String) {
 fun DefaultPreview() {
     MyApplicationTheme {
         val textState = remember { mutableStateOf(TextFieldValue("")) }
-        MainScreen(contactsInfo = contactsInfoList, null,textState)
+        MainScreen(contactsInfo = contactsInfoList, null, textState)
     }
 }
 

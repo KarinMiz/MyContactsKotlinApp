@@ -1,23 +1,22 @@
 package com.example.mycontactskotlinapp
 
-
-
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 const val MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1
 class ContactViewModel : ViewModel() {
 
     private var repository: ContactRepository? = null
-    var _contacts: ArrayList<ContactObject>? = null
+    private var _contacts: MutableLiveData<ArrayList<ContactObject>>? = null
 
     fun contactViewModel(context: Context?) {
         repository = context?.let { ContactRepository(it) }
-        _contacts = ArrayList()
+        _contacts = MutableLiveData<ArrayList<ContactObject>>()
     }
 
     fun checkPermission(context: Context) {
@@ -33,11 +32,11 @@ class ContactViewModel : ViewModel() {
         } else {
             // Permission has already been granted
             // Access contacts here
-            _contacts = repository?.fetchContacts()
+            _contacts?.value = repository?.fetchContacts()
         }
     }
 
-    fun getContacts(): ArrayList<ContactObject>? {
+    fun getContacts(): MutableLiveData<ArrayList<ContactObject>>? {
         return _contacts
     }
 }

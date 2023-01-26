@@ -9,7 +9,6 @@ import android.provider.ContactsContract
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import java.util.*
-import kotlin.collections.ArrayList
 
 data class ContactObject(
     var id: String,
@@ -20,8 +19,7 @@ data class ContactObject(
     val emailsList: MutableList<Email>,
     val backgroundColor: Color
 )
-
-data class PhoneNumber(val number: String, val type: Int) {
+data class PhoneNumber(var number: String, var type: Int) {
     fun getTypeName(): String {
         return when (type) {
             ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> "Home"
@@ -51,12 +49,11 @@ data class Email(val address: String, val type: Int) {
 }
 
 
-class ContactRepository(context: Context) {
-    private val context: Context = context
+class ContactRepository(private val context: Context) {
 
     @SuppressLint("Range")
     fun fetchContacts(): ArrayList<ContactObject> {
-        val contacts: ArrayList<ContactObject> = ArrayList()
+        val contacts: ArrayList<ContactObject> = ArrayList<ContactObject>()
         val cursor: Cursor? = context.contentResolver
             .query(
                 ContactsContract.Contacts.CONTENT_URI,
@@ -65,7 +62,7 @@ class ContactRepository(context: Context) {
 
         if (cursor != null && cursor.count > 0) {
             Log.i(TAG, "fetchContacts: cursor.getCount() is " + cursor.count)
-            while (cursor!!.moveToNext()) {
+            while (cursor.moveToNext()) {
                 val id: String =
                     cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID))
                 val name: String =
@@ -76,7 +73,7 @@ class ContactRepository(context: Context) {
                 val hasImage = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_ID)) > 0
                 if(hasImage){
                     //retrieve contact's image
-                    var uri: String =
+                    val uri: String =
                         cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))
                     val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(uri))
                     contactImage = BitmapFactory.decodeStream(inputStream)
@@ -105,7 +102,12 @@ class ContactRepository(context: Context) {
                 phoneCursor?.close()
 
                 // Email list check
-                val emailCursor = context.contentResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", arrayOf(id), null)
+                val emailCursor = context.contentResolver.query(
+                    ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                    null,
+                    ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
+                    arrayOf(id),
+                    null)
                 val emails = mutableListOf<Email>()
                 while (emailCursor?.moveToNext() == true) {
                     val email = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS))
@@ -113,7 +115,7 @@ class ContactRepository(context: Context) {
                     emails.add(Email(email,emailType))
                 }
                 emailCursor?.close()
-                val fullName = name.split("\\p{Space}".toRegex()).toTypedArray()
+                val fullName = name.split("\\s".toRegex()).toTypedArray()
                 val rnd = Random()
                 val background = Color(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
                 val contact = ContactObject(id, fullName[0], fullName[1], contactImage, phoneNumbers, emails,background)
@@ -128,7 +130,7 @@ class ContactRepository(context: Context) {
 
 
     companion object {
-        private const val TAG = "debinf ContRepo"
+        private const val TAG = "deb-inf ContRepo"
     }
 
 }
